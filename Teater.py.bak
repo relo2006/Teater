@@ -1,5 +1,4 @@
 import json
-
 class Person:
     def __init__(self, navn, adresse, epost, telefon, billetter=None, person_type=""):
         if billetter is None:
