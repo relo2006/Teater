@@ -1,5 +1,5 @@
 class Person:
-  def __init__(self, navn, adresse, epost, telefon, billetter = [], type = ):
+  def __init__(self, navn, adresse, epost, telefon, billetter = []):
     self.navn = navn
     self.adresse = adresse
     self.epost = epost
@@ -8,6 +8,9 @@ class Person:
 
   def visBillett(self):
     return self.billetter
+
+  def leggTilBillett(self, billett):
+    self.billetter.append(billett)
 
 class Billett:
   def __init__(self, forestilling, dag, sal, person):
@@ -34,6 +37,12 @@ class Sal:
   def __init__(self, navn, plasser):
     self.navn = navn
     self.plasser = plasser
+
+gullsal = Sal('Gull', 150)
+sølvsal = Sal('Sølv', 100)
+bronsesal = Sal('Bronse', 50)
+
+
 
 
     
