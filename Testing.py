@@ -1,23 +1,41 @@
 import json
 class Bestilling:
-    def to_json(self):
+    def __init__(self,gull, solv, bronse):
+        self.gull = gull
+        self.solv = solv
+        self.bronse = bronse
+    
+    def JSON(self):
         return {
-            "forestilling": self.forestilling,
-            "dag": self.dag,
-            "sal": self.sal,
-            "person": self.person.to_json()
+            "Gull": self.gull,
+            "Solv": self.solv,
+            "Bronse": self.bronse
         }
+
+
 
 with open('Plasser.json', 'r') as f:
     loaded_person = json.load(f)
-    loaded_person_obj = int(loaded_person["Gull"])
+    gullplasser = int(loaded_person["Gull"])
+    solvplasser = int(loaded_person["Solv"])
+    bronseplasser = int(loaded_person["Bronse"])
 
-plasser = int(input("Skriv inn biletter: "))
-ledigplasserny = loaded_person_obj - plasser
-ledigplasserny = str(ledigplasserny)
-print(loaded_person_obj)
+plasser_gull = int(input("Skriv inn biletter for plasser av Gull: "))
+plasser_solv = int(input("Skriv inn biletter for plasser av Sølv: "))
+plasser_bronse = int(input("Skriv inn biletter for plasser av Bronse: "))
+
+gull1 = gullplasser - plasser_gull
+solv1 = solvplasser - plasser_solv
+bronse1 = bronseplasser - plasser_bronse
+
+gull1 = str(gull1)
+solv1 = str(solv1)
+bronse1 = str(bronse1)
+
+oppdaterteplasser = Bestilling(gull1,solv1,bronse1)
+print(gullplasser)
 
 with open('Ledige Plasser.json', 'w') as f:
-    json.dump(ledigplasserny, f, indent=2)
+    json.dump(oppdaterteplasser.JSON(), f, indent=2)
 
 
