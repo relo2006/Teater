@@ -43,8 +43,6 @@ class Forestilling:
     def bestilling(self, billetter):
         self.ledigeplasser += - billetter
         
-    
-
 class Sal:
     def __init__(self, navn, plasser):
         self.navn = navn
@@ -54,10 +52,7 @@ gullsal = Sal('Gull', 150)
 sølvsal = Sal('Sølv', 100)
 bronsesal = Sal('Bronse', 50)
 
-
-smalltalk = Forestilling('smalltalk', sølvsal, 'onsdag')
-person = Person('navn', 'adresse', 'epost', 'tlf')
-
+pris = 0
 
 def bestilling(person, forestilling):
     antallBilletter = int(input('Antall billetter: '))
@@ -67,12 +62,10 @@ def bestilling(person, forestilling):
         
         billett = Billett(forestilling, person)
         billett.typeBillett(alder, studentstatus)
+        pris += billett.pris
         person.leggTilBillett(billett)
     
     
-bestilling(person, smalltalk)
-
-person.visBillett()
 
 
 
