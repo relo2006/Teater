@@ -14,6 +14,30 @@ class Bestilling:
             "Bronse": self.bronse
         }
 
+def get_sal_and_tickets():
+    while True:
+        sal = str(input("Skriv inn salen du ønsker å bestille billett til (For sal sølv, vennligst skriv inn solv): "))
+
+        if sal.lower() not in ['gull', 'solv', 'bronse']:
+            print("Ugyldig saltype. Velg mellom Gull, Sølv eller Bronse.")
+        else:
+            # Få antall billetter for den nye bestillingen
+            if sal.lower() == "gull":
+                plasser_gull = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Gull: "))
+                plasser_solv, plasser_bronse = 0, 0
+            elif sal.lower() == "solv":
+                plasser_solv = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Sølv: "))
+                plasser_gull, plasser_bronse = 0, 0
+            elif sal.lower() == "bronse":
+                plasser_bronse = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Bronse: "))
+                plasser_gull, plasser_solv = 0, 0
+
+            # Sjekk om antall plasser er mindre enn 0
+            if plasser_gull < 0 or plasser_solv < 0 or plasser_bronse < 0:
+                print("Antall plasser kan ikke være mindre enn 0. Vennligst velg en annen sal.")
+            else:
+                return sal, plasser_gull, plasser_solv, plasser_bronse
+
 # Sjekk om 'Ledige Plasser.json' eksisterer
 if os.path.exists('Ledige Plasser.json'):
     with open('Ledige Plasser.json', 'r') as f:
@@ -24,20 +48,8 @@ else:
         start_plasser = json.load(f)
         eksisterende_plasser = start_plasser
 
-sal = str(input("Skriv inn salen du ønsker å bestille billett til (For sal sølv, vennligst skriv inn solv): "))
-# Få antall billetter for den nye bestillingen
-if sal.lower() == "gull":
-    plasser_gull = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Gull: "))
-    plasser_solv, plasser_bronse = 0, 0
-elif sal.lower() == "solv":
-    plasser_solv = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Sølv: "))
-    plasser_gull, plasser_bronse = 0, 0
-elif sal.lower() == "bronse":
-    plasser_bronse = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Bronse: "))
-    plasser_gull, plasser_solv = 0, 0
-else:
-    print("Ugyldig saltype. Velg mellom Gull, Sølv eller Bronse.")
-    exit()
+# Get sal and tickets using the new function
+sal, plasser_gull, plasser_solv, plasser_bronse = get_sal_and_tickets()
 
 ny_bestilling = Bestilling(plasser_gull, plasser_solv, plasser_bronse)
 
@@ -50,59 +62,66 @@ gullplasser -= ny_bestilling.gull
 solvplasser -= ny_bestilling.solv
 bronseplasser -= ny_bestilling.bronse
 
+# Sjekk på nytt om antall plasser er mindre enn 0 etter oppdateringen
+if gullplasser < -1 or solvplasser < -1 or bronseplasser < -1:
+    print("Antall plasser kan ikke være mindre enn 0 etter oppdateringen. Velg en annen sal.")
+
+    # Loop for å spørre etter en ny sal
+    while True:
+        sal, plasser_gull, plasser_solv, plasser_bronse = get_sal_and_tickets()
+        if sal.lower() in ['gull', 'solv', 'bronse']:
+            break
+        else:
+            print("Ugyldig saltype. Velg mellom Gull, Sølv eller Bronse.")
+
+if solvplasser < -1:
+    solvplasser = 0
+elif bronseplasser < -1:
+    bronseplasser = 0
+elif gullplasser < -1:
+    gullplasser = 0
+
 oppdaterteplasser = {
     "Gull": str(gullplasser),
     "Solv": str(solvplasser),
     "Bronse": str(bronseplasser)
 }
-
 with open('Ledige Plasser.json', 'w') as f:
     json.dump(oppdaterteplasser, f, indent=2)
 
 print("Oppdaterte plasser:")
 print(oppdaterteplasser)
 
-kontaktinfo = "Ja"
-
-if kontaktinfo.lower() == "ja":
+# Løkke for å få kontaktinformasjonen inntil alt er fylt inn
+while True:
     navn = str(input("Skriv inn navnet ditt: "))
     adresse = str(input("Skriv inn adressen din: "))
     tlf = str(input("Skriv inn telefonnummeret ditt: "))
     epost = str(input("Skriv inn epostadressen din: "))
     alder = int(input("Skriv inn alderen din: "))
 
-    person_type = ""
-    if alder > 19:
-        person_type = "Ikke student"
+    if navn and adresse and tlf and epost and alder:
+        break
     else:
-        person_type = "Student"
+        print("Vennligst fyll ut all kontaktinformasjon.")
 
-    person = {
-        "navn": navn,
-        "adresse": adresse,
-        "telefon": tlf,
-        "epost": epost,
-        "person_type": person_type
-    }
+person_type = "Ikke student" if alder > 19 else "Student"
 
-    billett = {
-        "person": person
-    }
+person = {
+    "navn": navn,
+    "adresse": adresse,
+    "telefon": tlf,
+    "epost": epost,
+    "person_type": person_type,
+    "Sal": sal
+}
 
-    # Opprett mapper hvis de ikke eksisterer
-    if not os.path.exists("Bestillinger"):
-        os.makedirs("Bestillinger")
-    if not os.path.exists("Personer"):
-        os.makedirs("Personer")
+# Opprett mapper hvis de ikke eksisterer
+if not os.path.exists("Personer"):
+    os.makedirs("Personer")
 
-    # Lagre personinformasjon i 'Personer' mappe
-    with open(os.path.join("Personer", f'{navn}_person.json'), 'w') as f:
-        json.dump(person, f, indent=2)
+# Lagre personinformasjon i 'Personer' mappe
+with open(os.path.join("Personer", f'{navn}.json'), 'w') as f:
+    json.dump(person, f, indent=2)
 
-    # Lagre billettinformasjon i 'Bestillinger' mappe
-    with open(os.path.join("Bestillinger", f'{navn}_billett.json'), 'w') as f:
-        json.dump(billett, f, indent=2)
-
-    print("Kontaktinformasjon lagret.")
-else:
-    print("Ingen kontaktinformasjon lagret.")
+print("Billetten har blitt lagret.")
