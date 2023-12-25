@@ -14,7 +14,7 @@ class Bestilling:
             "Bronse": self.bronse
         }
 
-def get_sal_and_tickets():
+def salfunc():
     while True:
         sal = str(input("Skriv inn salen du ønsker å bestille billett til (For sal sølv, vennligst skriv inn solv): "))
 
@@ -48,8 +48,8 @@ else:
         start_plasser = json.load(f)
         eksisterende_plasser = start_plasser
 
-# Get sal and tickets using the new function
-sal, plasser_gull, plasser_solv, plasser_bronse = get_sal_and_tickets()
+# Henter inn sal
+sal, plasser_gull, plasser_solv, plasser_bronse = salfunc()
 
 ny_bestilling = Bestilling(plasser_gull, plasser_solv, plasser_bronse)
 
@@ -68,7 +68,7 @@ if gullplasser < -1 or solvplasser < -1 or bronseplasser < -1:
 
     # Loop for å spørre etter en ny sal
     while True:
-        sal, plasser_gull, plasser_solv, plasser_bronse = get_sal_and_tickets()
+        sal, plasser_gull, plasser_solv, plasser_bronse = salfunc()
         if sal.lower() in ['gull', 'solv', 'bronse']:
             break
         else:
