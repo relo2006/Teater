@@ -7,4 +7,3 @@ if velg == 1:
     import Ny_Bestilling
 elif velg == 2:
     import Hent_billett
-    
