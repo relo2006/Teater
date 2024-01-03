@@ -1,5 +1,7 @@
 import json
 import os
+import getpass
+import hashlib
 import clear
 
 class Bestilling:
@@ -7,13 +9,18 @@ class Bestilling:
         self.gull = gull
         self.solv = solv
         self.bronse = bronse
-    
+
     def JSON(self):
         return {
             "Gull": self.gull,
             "Solv": self.solv,
             "Bronse": self.bronse
         }
+
+def generate_hash(password):
+    # Bruk en kryptografisk hashfunksjon, for eksempel SHA-256
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    return hashed_password
 
 def salfunc():
     while True:
@@ -100,8 +107,10 @@ while True:
     tlf = str(input("Skriv inn telefonnummeret ditt: "))
     epost = str(input("Skriv inn epostadressen din: "))
     alder = int(input("Skriv inn alderen din: "))
+    passord = getpass.getpass("Oppgi et passord for billetten: ")
+    hashed_passord = generate_hash(passord)
 
-    if navn and adresse and tlf and epost and alder:
+    if navn and adresse and tlf and epost and passord and alder:
         break
     else:
         print("Vennligst fyll ut all kontaktinformasjon.")
@@ -113,6 +122,7 @@ person = {
     "adresse": adresse,
     "telefon": tlf,
     "epost": epost,
+    "passord": hashed_passord,  # Lagre hashverdien av passordet
     "person_type": person_type,
     "Sal": sal
 }
