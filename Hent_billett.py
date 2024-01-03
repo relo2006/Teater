@@ -1,7 +1,9 @@
 import json
 import os
-navn = str(input("Hva heter du???"))
-with open(os.path.join(os.getcwd(), "Personer",f"{navn}.json"), 'r') as f:
+import clear
+epost = str(input("Hva er epostadressen din: "))
+
+with open(os.path.join(os.getcwd(), "Personer",f"{epost}.json"), 'r') as f:
         person = json.load(f)
 
 print("Navn:", person["navn"])

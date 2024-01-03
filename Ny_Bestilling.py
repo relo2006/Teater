@@ -1,5 +1,6 @@
 import json
 import os
+import clear
 
 class Bestilling:
     def __init__(self, gull, solv, bronse):
@@ -121,7 +122,7 @@ if not os.path.exists("Personer"):
     os.makedirs("Personer")
 
 # Lagre personinformasjon i 'Personer' mappe
-with open(os.path.join("Personer", f'{navn}.json'), 'w') as f:
+with open(os.path.join("Personer", f'{epost}.json'), 'w') as f:
     json.dump(person, f, indent=2)
 
 print("Billetten har blitt lagret.")
