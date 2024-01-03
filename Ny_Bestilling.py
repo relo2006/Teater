@@ -106,14 +106,9 @@ while True:
     adresse = str(input("Skriv inn adressen din: "))
     tlf = str(input("Skriv inn telefonnummeret ditt: "))
     epost = str(input("Skriv inn epostadressen din: "))
-    
-    # Bruk getpass for å skjule passordet
-    passord = getpass.getpass("Oppgi et passord for billetten: ")
-    
-    # Bruk kryptografisk hashfunksjon for å lage en hashverdi av passordet
-    hashed_passord = generate_hash(passord)
-    
     alder = int(input("Skriv inn alderen din: "))
+    passord = getpass.getpass("Oppgi et passord for billetten: ")
+    hashed_passord = generate_hash(passord)
 
     if navn and adresse and tlf and epost and passord and alder:
         break
