@@ -3,6 +3,57 @@ import os
 import getpass
 import hashlib
 import clear
+from datetime import datetime, timedelta
+import shutil
+
+def vis_datoer(filnavn):
+    with open(filnavn, 'r') as fil:
+        datoer_data = json.load(fil)
+
+    print("Tilgjengelige datoer:")
+    for i, dato in enumerate(datoer_data["tilgjengelige_datoer"], start=1):
+        print(f"{i}. {dato}")
+
+def oppdater_json(original_filnavn, ny_filnavn, bestilt_dato):
+    # Sjekk om den endrede filen eksisterer, hvis ikke bruk originalen
+    if os.path.exists(ny_filnavn):
+        shutil.copy(ny_filnavn, original_filnavn)
+        filnavn = ny_filnavn
+    else:
+        filnavn = original_filnavn
+
+    with open(filnavn, 'r') as fil:
+        datoer_data = json.load(fil)
+
+    if bestilt_dato in datoer_data["tilgjengelige_datoer"]:
+        datoer_data["tilgjengelige_datoer"].remove(bestilt_dato)
+
+        with open(filnavn, 'w') as fil:
+            json.dump(datoer_data, fil, indent=2)
+        print(f"Dato {bestilt_dato} er fjernet. Oppdatert JSON-fil: {filnavn}")
+    else:
+        print(f"Dato {bestilt_dato} er ikke tilgjengelig.")
+
+if __name__ == "__main__":
+    # Spør etter datoen
+    original_filnavn = "original tilgjengelige datoer.json"
+    ny_filnavn = "endret tilgjengelige datoer.json"
+    
+    vis_datoer(ny_filnavn)
+
+    valgt_indeks = int(input("Velg en dato ved å skrive inn tilhørende nummer: "))
+    
+    with open(ny_filnavn, 'r') as fil:
+        datoer_data = json.load(fil)
+
+    if 1 <= valgt_indeks <= len(datoer_data["tilgjengelige_datoer"]):
+        bestilt_dato = datetime.strptime(datoer_data["tilgjengelige_datoer"][valgt_indeks - 1], "%d.%m.%Y")
+        oppdater_json(original_filnavn, ny_filnavn, bestilt_dato.strftime("%d.%m.%Y"))
+        print(f"Du har valgt datoen {bestilt_dato.strftime('%d.%m.%Y')} for bestilling.")
+    else:
+        print("Ugyldig valg. Vennligst velg en gyldig dato.")
+
+
 
 class Bestilling:
     def __init__(self, gull, solv, bronse):
@@ -117,6 +168,14 @@ while True:
 
 person_type = "Ikke student" if alder > 19 else "Student"
 
+billetter = 0
+if sal.lower() == "gull":
+    plasser_gull = billetter 
+elif sal.lower() == "solv":
+    plasser_solv = billetter
+elif sal.lower() == "bronse":
+    plasser_bronse = billetter
+
 person = {
     "navn": navn,
     "adresse": adresse,
@@ -124,6 +183,8 @@ person = {
     "epost": epost,
     "passord": hashed_passord,  # Lagre hashverdien av passordet
     "person_type": person_type,
+    "Dato": bestilt_dato.strftime('%d.%m.%Y'),
+    "Billetter": billetter,
     "Sal": sal
 }
 
@@ -135,4 +196,6 @@ if not os.path.exists("Personer"):
 with open(os.path.join("Personer", f'{epost}.json'), 'w') as f:
     json.dump(person, f, indent=2)
 
+    
+print(f"Du har valgt datoen {bestilt_dato.strftime('%d.%m.%Y')} for bestilling.")
 print("Billetten har blitt lagret.")
