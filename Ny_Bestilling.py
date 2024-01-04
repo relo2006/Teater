@@ -148,7 +148,7 @@ oppdaterteplasser = {
 with open('Ledige Plasser.json', 'w') as f:
     json.dump(oppdaterteplasser, f, indent=2)
 
-print("Oppdaterte plasser:")
+print("Tilgjengelige plasser igjen:")
 print(oppdaterteplasser)
 
 # Løkke for å få kontaktinformasjonen inntil alt er fylt inn
