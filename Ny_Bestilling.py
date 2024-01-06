@@ -3,55 +3,46 @@ import os
 import getpass
 import hashlib
 import clear
-from datetime import datetime, timedelta
+from datetime import datetime
 import shutil
+import smtplib
+import random
+import string
 
-def vis_datoer(filnavn):
-    with open(filnavn, 'r') as fil:
-        datoer_data = json.load(fil)
+def vis_datoer(filnavn, filnavn2):
+    if os.path.exists(filnavn2):
+        with open(filnavn2, 'r') as fil:
+            datoer_data = json.load(fil)
+        print("Folk har bestilt fra før", end="\n")
+    else:
+        with open(filnavn, 'r') as fil:
+            datoer_data = json.load(fil)
+        print("Gratulerer, du er den første til å bestille billett", end="\n")
 
-    print("Tilgjengelige datoer:")
+    print("Viser Tilgjengelige datoer:")
     for i, dato in enumerate(datoer_data["tilgjengelige_datoer"], start=1):
         print(f"{i}. {dato}")
 
 def oppdater_json(original_filnavn, ny_filnavn, bestilt_dato):
-    # Sjekk om den endrede filen eksisterer, hvis ikke bruk originalen
+    # Kopier originalen til den nye filen hvis den eksisterer
     if os.path.exists(ny_filnavn):
         shutil.copy(ny_filnavn, original_filnavn)
         filnavn = ny_filnavn
     else:
         filnavn = original_filnavn
 
-    with open(filnavn, 'r') as fil:
-        datoer_data = json.load(fil)
+    try:
+        with open(filnavn, 'r') as fil:
+            datoer_data = json.load(fil)
 
-    if bestilt_dato in datoer_data["tilgjengelige_datoer"]:
-        datoer_data["tilgjengelige_datoer"].remove(bestilt_dato)
+        if bestilt_dato.strftime("%d.%m.%Y") in datoer_data["tilgjengelige_datoer"]:
+            datoer_data["tilgjengelige_datoer"].remove(bestilt_dato.strftime("%d.%m.%Y"))
 
-        with open(filnavn, 'w') as fil:
-            json.dump(datoer_data, fil, indent=2)
-        print(f"Dato {bestilt_dato} er fjernet. Oppdatert JSON-fil: {filnavn}")
-    else:
-        print(f"Dato {bestilt_dato} er ikke tilgjengelig.")
-
-if __name__ == "__main__":
-    # Spør etter datoen
-    original_filnavn = "original tilgjengelige datoer.json"
-    ny_filnavn = "endret tilgjengelige datoer.json"
-    
-    vis_datoer(ny_filnavn)
-
-    valgt_indeks = int(input("Velg en dato ved å skrive inn tilhørende nummer: "))
-    
-    with open(ny_filnavn, 'r') as fil:
-        datoer_data = json.load(fil)
-
-    if 1 <= valgt_indeks <= len(datoer_data["tilgjengelige_datoer"]):
-        bestilt_dato = datetime.strptime(datoer_data["tilgjengelige_datoer"][valgt_indeks - 1], "%d.%m.%Y")
-        oppdater_json(original_filnavn, ny_filnavn, bestilt_dato.strftime("%d.%m.%Y"))
-        print(f"Du har valgt datoen {bestilt_dato.strftime('%d.%m.%Y')} for bestilling.")
-    else:
-        print("Ugyldig valg. Vennligst velg en gyldig dato.")
+            with open(ny_filnavn, 'w') as fil:
+                json.dump(datoer_data, fil, indent=2)
+            print(f"Dato {bestilt_dato.strftime('%d.%m.%Y')} er fjernet. Oppdatert JSON-fil: {ny_filnavn}")
+    except FileNotFoundError:
+        print(f"Fil {filnavn} ikke funnet.")
 
 
 
@@ -145,26 +136,56 @@ oppdaterteplasser = {
     "Solv": str(solvplasser),
     "Bronse": str(bronseplasser)
 }
-with open('Ledige Plasser.json', 'w') as f:
-    json.dump(oppdaterteplasser, f, indent=2)
+
 
 print("Tilgjengelige plasser igjen:")
 print(oppdaterteplasser)
 
-# Løkke for å få kontaktinformasjonen inntil alt er fylt inn
-while True:
+def generate_verification_code():
+    # Generer en tilfeldig kode med lengde 6
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+def send_verification_email(to_email, verification_code):
+    # E-postdetaljer
+    sender_email = "temp15293@gmail.com"
+    sender_password = "bfjf bsua wfhd nrqx"
+    smtp_server = "smtp.gmail.com"
+
+    # E-postinnstillingene
+    subject = "Verifikasjonskode"
+    body = f"Din verifikasjonskode er: {verification_code}"
+    message = f"Subject: {subject}\n\n{body}"
+
+    try:
+        # Logg inn på e-postserveren
+        with smtplib.SMTP(smtp_server, 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+
+            # Send e-post
+            server.sendmail(sender_email, to_email, message)
+        print("E-post med verifikasjonskode sendt suksessfullt.")
+    except Exception as e:
+        print(f"Feil ved sending av e-post: {e}")
+
+def main():
     navn = str(input("Skriv inn navnet ditt: "))
     adresse = str(input("Skriv inn adressen din: "))
     tlf = str(input("Skriv inn telefonnummeret ditt: "))
     epost = str(input("Skriv inn epostadressen din: "))
     alder = int(input("Skriv inn alderen din: "))
-    passord = getpass.getpass("Oppgi et passord for billetten: ")
-    hashed_passord = generate_hash(passord)
 
-    if navn and adresse and tlf and epost and passord and alder:
-        break
+    verification_code = generate_verification_code()
+    send_verification_email(epost, verification_code)
+    user_input = input("Skriv inn verifikasjonskoden fra e-posten: ")
+    if user_input == verification_code:
+        print("Koden er riktig. Brukeren er verifisert.")
     else:
-        print("Vennligst fyll ut all kontaktinformasjon.")
+        print("Feil kode. Brukeren er ikke verifisert.")
+    return navn, adresse, tlf, epost, alder
+
+if __name__ == "__main__":
+    navn, adresse, tlf, epost, alder = main()
 
 person_type = "Ikke student" if alder > 19 else "Student"
 
@@ -176,12 +197,36 @@ elif sal.lower() == "solv":
 elif sal.lower() == "bronse":
     plasser_bronse = billetter
 
+
+
+
+if __name__ == "__main__":
+    original_filnavn = "original tilgjengelige datoer.json"
+    ny_filnavn = "endret tilgjengelige datoer.json"
+    vis_datoer(original_filnavn, ny_filnavn)
+
+    valgt_indeks = int(input("Velg en dato ved å skrive inn tilhørende nummer: "))
+
+    if os.path.exists(ny_filnavn):
+        with open(ny_filnavn, 'r') as fil:
+            datoer_data = json.load(fil)
+    else:
+        with open(original_filnavn, 'r') as fil:
+            datoer_data = json.load(fil)
+
+    if 1 <= valgt_indeks <= len(datoer_data["tilgjengelige_datoer"]):
+        bestilt_dato = datetime.strptime(datoer_data["tilgjengelige_datoer"][valgt_indeks - 1], "%d.%m.%Y")
+        oppdater_json(original_filnavn, ny_filnavn, bestilt_dato)
+        print(f"Du har valgt datoen {bestilt_dato.strftime('%d.%m.%Y')} for bestilling.")
+    else:
+        print("Ugyldig valg. Vennligst velg en gyldig dato.")
+
+
 person = {
     "navn": navn,
     "adresse": adresse,
     "telefon": tlf,
     "epost": epost,
-    "passord": hashed_passord,  # Lagre hashverdien av passordet
     "person_type": person_type,
     "Dato": bestilt_dato.strftime('%d.%m.%Y'),
     "Billetter": billetter,
@@ -196,6 +241,8 @@ if not os.path.exists("Personer"):
 with open(os.path.join("Personer", f'{epost}.json'), 'w') as f:
     json.dump(person, f, indent=2)
 
+with open('Ledige Plasser.json', 'w') as f:
+    json.dump(oppdaterteplasser, f, indent=2)
     
 print(f"Du har valgt datoen {bestilt_dato.strftime('%d.%m.%Y')} for bestilling.")
 print("Billetten har blitt lagret.")
