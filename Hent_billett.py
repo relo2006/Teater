@@ -1,40 +1,64 @@
 import json
 import os
-import hashlib
-import getpass
+import smtplib
 import clear
+import random
+import string
 
-epost = str(input("Hva er epostadressen din: "))
-passord = getpass.getpass("Skriv inn passordet ditt: ")
+def verfiseringkodefunc():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
-# Funksjon for å verifisere passord
-def verify_password(stored_hashed_password, input_password):
-    hashed_input_password = generate_hash(input_password)
-    return stored_hashed_password == hashed_input_password
+def send_verification_email(to_email, verfisering_kode):
+    sender_email = "temp15293@gmail.com"
+    sender_password = "bfjf bsua wfhd nrqx"
+    smtp_server = "smtp.gmail.com"
 
-# Funksjon for å generere hashverdi av passordet
-def generate_hash(password):
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    return hashed_password
+    tittel = "Verifikasjonskode"
+    meldingen = f"Din verifikasjonskode er: {verfisering_kode}"
+    hele_epost = f"tittel: {tittel}\n\n{meldingen}"
 
-# Sjekk om brukerens JSON-fil eksisterer
-bruker_json_fil = os.path.join(os.getcwd(), "Personer", f"{epost}.json")
+    try:
+        with smtplib.SMTP(smtp_server, 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, to_email, hele_epost)
+        print("E-post med verifikasjonskode sendt suksessfullt.")
+    except Exception as e:
+        print(f"Feil ved sending av e-post: {e}")
 
-if os.path.exists(bruker_json_fil):
-    with open(bruker_json_fil, 'r') as f:
-        bruker_data = json.load(f)
+def main():
+    # Spør brukeren om e-postadressen
+    to_email = input("Skriv inn din e-postadresse: ")
 
-    # Verifiser passordet
-    stored_hashed_password = bruker_data.get("passord", "")
-    if verify_password(stored_hashed_password, passord):
-        print("Passordet er riktig. Tilgjengelig informasjon:")
-        print("Navn:", bruker_data["navn"])
-        print("Adresse:", bruker_data["adresse"])
-        print("Telefon:", bruker_data["telefon"])
-        print("Epost:", bruker_data["epost"])
-        print("Person Type:", bruker_data["person_type"])
-        print("Sal:", bruker_data["Sal"])
+    # Generer verifikasjonskode
+    verification_code = verfiseringkodefunc()
+
+    # Sender e-post med verifikasjonskode
+    send_verification_email(to_email, verification_code)
+
+    # Ber brukeren om å skrive inn verifikasjonskoden
+    user_input = input("Skriv inn verifikasjonskoden fra e-posten: ")
+
+    # Sjekker om brukeren skrev inn riktig kode
+    if user_input == verification_code:
+        print("Koden er riktig. Brukeren er verifisert.")
+
+        # Henter og viser brukerinformasjon
+        bruker_json_fil = os.path.join(os.getcwd(), "Personer", f"{to_email}.json")
+        if os.path.exists(bruker_json_fil):
+            with open(bruker_json_fil, 'r') as f:
+                bruker_data = json.load(f)
+
+            print("Navn:", bruker_data["navn"])
+            print("Adresse:", bruker_data["adresse"])
+            print("Telefon:", bruker_data["telefon"])
+            print("Epost:", bruker_data["epost"])
+            print("Person Type:", bruker_data["person_type"])
+            print("Sal:", bruker_data["Sal"])
+        else:
+            print("Brukeren med den oppgitte epostadressen eksisterer ikke.")
     else:
-        print("Feil passord. Tilgang nektet.")
-else:
-    print("Brukeren med den oppgitte epostadressen eksisterer ikke.")
+        print("Feil kode. Brukeren er ikke verifisert.")
+
+if __name__ == "__main__":
+    main()
