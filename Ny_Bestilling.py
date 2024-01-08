@@ -69,29 +69,32 @@ class Bestilling:
             "Gull": self.gull,
             "Solv": self.solv,
             "Bronse": self.bronse
+    
         }
 
 def salfunc():
     while True:
+        print("Velg mellom: 1 eller 2", end="\n")
+        print("1. Vildanden")
+        print("2. De elendige")
+        forestilling = int(input("Hvilken forestilling har du lyst til å se på?"))
         sal = str(input("Skriv inn salen du ønsker å bestille billett til (For sal sølv, vennligst skriv inn solv): "))
-
         if sal.lower() not in ['gull', 'solv', 'bronse']:
             print("Ugyldig saltype. Velg mellom Gull, Sølv eller Bronse.")
         else:
             if sal.lower() == "gull":
                 plasser_gull = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Gull: "))
                 plasser_solv, plasser_bronse = 0, 0
+                return sal, plasser_gull, plasser_solv, plasser_bronse
             elif sal.lower() == "solv":
                 plasser_solv = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Sølv: "))
                 plasser_gull, plasser_bronse = 0, 0
+                return sal, plasser_gull, plasser_solv, plasser_bronse
             elif sal.lower() == "bronse":
                 plasser_bronse = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Bronse: "))
                 plasser_gull, plasser_solv = 0, 0
+                return sal, plasser_gull, plasser_solv, plasser_bronse, forestilling
 
-            if plasser_gull < 0 or plasser_solv < 0 or plasser_bronse < 0:
-                print("Antall plasser kan ikke være mindre enn 0. Vennligst velg en annen sal.")
-            else:
-                return sal, plasser_gull, plasser_solv, plasser_bronse
 
 if os.path.exists('Ledige Plasser.json'):
     with open('Ledige Plasser.json', 'r') as f:
@@ -101,7 +104,15 @@ else:
         start_plasser = json.load(f)
         eksisterende_plasser = start_plasser
 
-sal, plasser_gull, plasser_solv, plasser_bronse = salfunc()
+sal, plasser_gull, plasser_solv, plasser_bronse, forestilling = salfunc()
+
+forestillingnavn = 0
+if forestilling == 1:
+    forestillingnavn == "Vildanden"
+    print(forestillingnavn)
+elif forestilling == 2:
+    forestillingnavn == "De elendige"
+    print(forestillingnavn)
 
 ny_bestilling = Bestilling(plasser_gull, plasser_solv, plasser_bronse)
 
@@ -179,13 +190,31 @@ while True:
 
 person_type = "Ikke student" if alder > 19 else "Student"
 
-billetter = 0
+billetter = plasser_gull + plasser_solv + plasser_bronse
+
 if sal.lower() == "gull":
-    plasser_gull = billetter 
+    gullplasser += billetter
 elif sal.lower() == "solv":
-    plasser_solv = billetter
+    solvplasser += billetter
 elif sal.lower() == "bronse":
-    plasser_bronse = billetter
+    bronseplasser += billetter
+
+
+pris = 0
+
+if alder <= 10:
+    pris = 150  # Barn (under 10) får halv pris
+    pris = pris * billetter
+elif alder <= 18:
+    pris = 300 - 60  # Studenter (10-18) får 20% rabatt
+    pris = pris * billetter
+elif alder >= 67:
+    pris = 300 - (0.3 * 300)  # Personer over 67 får 30% honnørrabatt
+    pris = pris * billetter
+else:
+    pris = 300  # Ordinær pris for alle andre
+    pris = pris * billetter
+
 
 person = {
     "navn": navn,
@@ -195,6 +224,7 @@ person = {
     "person_type": person_type,
     "Dato": bestilt_dato.strftime('%d.%m.%Y'),
     "Billetter": billetter,
+    "Pris": pris,
     "Sal": sal
 }
 
