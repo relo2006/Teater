@@ -21,7 +21,7 @@ def vis_datoer(filnavn, filnavn2):
 
 def oppdater_json(original_filnavn, ny_filnavn, bestilt_dato):
     if os.path.exists(ny_filnavn):
-        shutil.copy(ny_filnavn, original_filnavn)
+        shutil.copy(original_filnavn, ny_filnavn)
         filnavn = ny_filnavn
     else:
         filnavn = original_filnavn
@@ -77,7 +77,7 @@ def salfunc():
         print("Velg mellom: 1 eller 2", end="\n")
         print("1. Vildanden")
         print("2. De elendige")
-        forestilling = int(input("Hvilken forestilling har du lyst til å se på?"))
+        forestilling = int(input("Hvilken forestilling har du lyst til å se på: "))
         sal = str(input("Skriv inn salen du ønsker å bestille billett til (For sal sølv, vennligst skriv inn solv): "))
         if sal.lower() not in ['gull', 'solv', 'bronse']:
             print("Ugyldig saltype. Velg mellom Gull, Sølv eller Bronse.")
@@ -85,11 +85,11 @@ def salfunc():
             if sal.lower() == "gull":
                 plasser_gull = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Gull: "))
                 plasser_solv, plasser_bronse = 0, 0
-                return sal, plasser_gull, plasser_solv, plasser_bronse
+                return sal, plasser_gull, plasser_solv, plasser_bronse, forestilling
             elif sal.lower() == "solv":
                 plasser_solv = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Sølv: "))
                 plasser_gull, plasser_bronse = 0, 0
-                return sal, plasser_gull, plasser_solv, plasser_bronse
+                return sal, plasser_gull, plasser_solv, plasser_bronse, forestilling
             elif sal.lower() == "bronse":
                 plasser_bronse = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Bronse: "))
                 plasser_gull, plasser_solv = 0, 0
@@ -106,13 +106,6 @@ else:
 
 sal, plasser_gull, plasser_solv, plasser_bronse, forestilling = salfunc()
 
-forestillingnavn = 0
-if forestilling == 1:
-    forestillingnavn == "Vildanden"
-    print(forestillingnavn)
-elif forestilling == 2:
-    forestillingnavn == "De elendige"
-    print(forestillingnavn)
 
 ny_bestilling = Bestilling(plasser_gull, plasser_solv, plasser_bronse)
 
@@ -215,6 +208,11 @@ else:
     pris = 300  # Ordinær pris for alle andre
     pris = pris * billetter
 
+forestillingnavn = 0
+if forestilling == 1:
+    forestillingnavn = "Vildanden"
+elif forestilling == 2:
+    forestillingnavn = "De elendige"
 
 person = {
     "navn": navn,
@@ -224,6 +222,7 @@ person = {
     "person_type": person_type,
     "Dato": bestilt_dato.strftime('%d.%m.%Y'),
     "Billetter": billetter,
+    "Forestilling": forestillingnavn,
     "Pris": pris,
     "Sal": sal
 }
