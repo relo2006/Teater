@@ -1,6 +1,5 @@
 import json
 import os
-import clear
 from datetime import datetime
 import smtplib
 import random
@@ -16,26 +15,51 @@ def vis_datoer(filnavn, filnavn2):
             datoer_data = json.load(fil)
 
     print("Tilgjengelige datoer:")
-    for i, dato in enumerate(datoer_data["tilgjengelige_datoer"], start=1):
-        print(f"{i}. {dato}")
+    for num, (dato, data) in enumerate(datoer_data["teater"]["datoer"].items(), start=1):
+        print(f"{num}. {dato}")
 
-def oppdater_json(original_filnavn, ny_filnavn, bestilt_dato):
-    if os.path.exists(ny_filnavn):
-        shutil.copy(original_filnavn, ny_filnavn)
-        filnavn = ny_filnavn
+    return datoer_data
+
+def skriv_ut_tilgjengelige_seter(dato_data):
+    print(f"Tilgjengelige seter for {valgt_dato}:")
+    for num, sete in enumerate(dato_data["seksjoner"][0]["seter"], start=1):
+        print(f"{num}. {sete['setenavn']} - {'Opptatt' if sete['opptatt'] else 'Ledig'}")
+
+def sjekk_alle_seter_opptatt(dato, teater_data):
+    seksjoner = teater_data["teater"]["datoer"][dato]["seksjoner"]
+    
+    for seksjon in seksjoner:
+        for sete in seksjon["seter"]:
+            if not sete["opptatt"]:
+                return False  # Hvis et sete ikke er opptatt, returner False
+
+    return True  # Hvis alle seter er opptatt, returner True
+
+def oppdater_json(original_filnavn, ny_filnavn, bestilt_dato, teater_data):
+    if bestilt_dato in teater_data["teater"]["datoer"]:
+        if sjekk_alle_seter_opptatt(bestilt_dato, teater_data):
+            print(f"Alle seter er opptatt på {bestilt_dato}. Kopierer til ny fil...")
+
+            # Kopier originalfilen til den nye kopi
+            shutil.copy(original_filnavn, ny_filnavn)
+
+            # Fjern datoen med alle setene opptatt fra den kopierte versjonen
+            with open(ny_filnavn, 'r') as kopiert_fil:
+                kopiert_data = json.load(kopiert_fil)
+
+            if bestilt_dato in kopiert_data["teater"]["datoer"]:
+                del kopiert_data["teater"]["datoer"][bestilt_dato]
+
+                with open(ny_filnavn, 'w') as kopiert_fil:
+                    json.dump(kopiert_data, kopiert_fil, indent=2)
+
+                print(f"Dato {bestilt_dato} er fjernet fra den kopierte versjonen.")
+            else:
+                print(f"Dato {bestilt_dato} er ikke tilgjengelig i den kopierte versjonen.")
+        else:
+            print(f"Ikke alle seter er opptatt på {bestilt_dato}. Ingen kopiering nødvendig.")
     else:
-        filnavn = original_filnavn
-
-    with open(filnavn, 'r') as fil:
-        datoer_data = json.load(fil)
-
-    if bestilt_dato in datoer_data["tilgjengelige_datoer"]:
-        datoer_data["tilgjengelige_datoer"].remove(bestilt_dato)
-
-        with open(ny_filnavn, 'w') as fil:
-            json.dump(datoer_data, fil, indent=2)
-    else:
-        print(f"Dato {bestilt_dato} er ikke tilgjengelig.")
+        print(f"Dato {bestilt_dato} er ikke tilgjengelig i teaterdataene.")
 
 def send_verification_email(to_email, verfisering_kode):
     sender_email = "temp15293@gmail.com"
@@ -69,7 +93,6 @@ class Bestilling:
             "Gull": self.gull,
             "Solv": self.solv,
             "Bronse": self.bronse
-    
         }
 
 def salfunc():
@@ -95,17 +118,15 @@ def salfunc():
                 plasser_gull, plasser_solv = 0, 0
                 return sal, plasser_gull, plasser_solv, plasser_bronse, forestilling
 
-
-if os.path.exists('Ledige Plasser.json'):
-    with open('Ledige Plasser.json', 'r') as f:
+if os.path.exists('Ledige Saler.json'):
+    with open('Ledige Saler.json', 'r') as f:
         eksisterende_plasser = json.load(f)
 else:
-    with open('Plasser.json', 'r') as f:
+    with open('Saler.json', 'r') as f:
         start_plasser = json.load(f)
         eksisterende_plasser = start_plasser
 
 sal, plasser_gull, plasser_solv, plasser_bronse, forestilling = salfunc()
-
 
 ny_bestilling = Bestilling(plasser_gull, plasser_solv, plasser_bronse)
 
@@ -140,11 +161,10 @@ oppdaterteplasser = {
     "Bronse": str(bronseplasser)
 }
 
+original_filnavn = "original tilgjengelige datoer og seter.json"
+ny_filnavn = "endret tilgjengelige datoer og seter.json"
 
-original_filnavn = "original tilgjengelige datoer.json"
-ny_filnavn = "endret tilgjengelige datoer.json"
-
-vis_datoer(original_filnavn, ny_filnavn)
+datoer_data = vis_datoer(original_filnavn, ny_filnavn)
 
 valgt_indeks = int(input("Velg en dato ved å skrive inn tilhørende nummer: "))
 
@@ -153,14 +173,15 @@ if os.path.exists(ny_filnavn):
         datoer_data = json.load(fil)
 else:
     with open(original_filnavn, 'r') as fil:
-            datoer_data = json.load(fil)
+        datoer_data = json.load(fil)
 
-if 1 <= valgt_indeks <= len(datoer_data["tilgjengelige_datoer"]):
-    bestilt_dato = datetime.strptime(datoer_data["tilgjengelige_datoer"][valgt_indeks - 1], "%d.%m.%Y")
+valgt_nummer = int(input("Velg en dato ved å skrive nummeret: "))
+valgt_dato = list(datoer_data["teater"]["datoer"].keys())[valgt_nummer - 1]
 
-    print(f"Du har valgt datoen {bestilt_dato.strftime('%d.%m.%Y')} for bestilling.")
-else:
-    print("Ugyldig valg. Vennligst velg en gyldig dato.")
+dato_data = datoer_data["teater"]["datoer"][valgt_dato]
+
+
+
 
 while True:
     navn = str(input("Skriv inn navnet ditt: "))
@@ -192,8 +213,33 @@ elif sal.lower() == "solv":
 elif sal.lower() == "bronse":
     bronseplasser += billetter
 
-
 pris = 0
+
+# Skriv ut tilgjengelige seter
+skriv_ut_tilgjengelige_seter(dato_data)
+
+valgte_seter = []  # Lag en liste for å lagre alle valgte seter
+
+for i in range(billetter):
+    while True:
+        valgt_sete_nummer = int(input("Velg et sete ved å skrive nummeret: "))
+        valgt_sete = dato_data["seksjoner"][0]["seter"][valgt_sete_nummer - 1]
+
+        # Sjekk om setet er opptatt
+        if valgt_sete["opptatt"]:
+            print(f"Setet {valgt_sete['setenavn']} er allerede opptatt. Velg et annet sete.")
+        else:
+            # Oppdater setet til opptatt
+            valgt_sete["opptatt"] = True
+
+            # Skriv oppdatert JSON tilbake til kopifilen
+            with open(ny_filnavn, "w") as fil:
+                json.dump(datoer_data, fil, indent=2)
+
+            print(f"Setet {valgt_sete['setenavn']} for {valgt_dato} er nå markert som opptatt.")
+            
+            valgte_seter.append(valgt_sete)  # Legg til det valgte setet i listen
+            break  # Avslutt løkken når et ledig sete er valgt
 
 if alder <= 10:
     pris = 150  # Barn (under 10) får halv pris
@@ -208,11 +254,7 @@ else:
     pris = 300  # Ordinær pris for alle andre
     pris = pris * billetter
 
-forestillingnavn = 0
-if forestilling == 1:
-    forestillingnavn = "Vildanden"
-elif forestilling == 2:
-    forestillingnavn = "De elendige"
+forestillingnavn = "Vildanden" if forestilling == 1 else "De elendige"
 
 person = {
     "navn": navn,
@@ -220,9 +262,10 @@ person = {
     "telefon": tlf,
     "epost": epost,
     "person_type": person_type,
-    "Dato": bestilt_dato.strftime('%d.%m.%Y'),
+    "Dato": valgt_dato,
     "Billetter": billetter,
     "Forestilling": forestillingnavn,
+    "Seter": valgte_seter,  # Lagrer alle valgte seter i listen
     "Pris": pris,
     "Sal": sal
 }
@@ -233,9 +276,9 @@ if not os.path.exists("Personer"):
 with open(os.path.join("Personer", f'{epost}.json'), 'w') as f:
     json.dump(person, f, indent=2)
 
-with open('Ledige Plasser.json', 'w') as f:
+with open('Ledige Saler.json', 'w') as f:
     json.dump(oppdaterteplasser, f, indent=2)
-    
-oppdater_json(original_filnavn, ny_filnavn, bestilt_dato.strftime("%d.%m.%Y"))
-print(f"Du har valgt datoen {bestilt_dato.strftime('%d.%m.%Y')} for bestilling.")
+
+oppdater_json(original_filnavn, ny_filnavn, valgt_dato, datoer_data)
+print(f"Du har valgt datoen {valgt_dato} for bestilling.")
 print("Billetten har blitt lagret.")

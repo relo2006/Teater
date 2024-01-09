@@ -61,6 +61,15 @@ while True:
             print("Epost:", bruker_data["epost"])
             print("Dato:", bruker_data["Dato"])
             print("Billetter:", bruker_data["Billetter"])
+            print("Forestilling:", bruker_data["Forestilling"])
+            if "Seter" in bruker_data and isinstance(bruker_data["Seter"], list):
+                print("Oversikt over Setene dine:")
+                for sete in bruker_data["Seter"]:
+                    setenavn = sete["setenavn"]
+                    opptatt_status = "Opptatt" if sete["opptatt"] else "Ledig"
+                    print(f"{setenavn}")
+            else:
+                print("Ingen seteinformasjon tilgjengelig i bruker_data.")
             print("Pris:", bruker_data["Pris"],"kr")
             print("Sal:", bruker_data["Sal"])
             break  # Avslutt løkken når brukeren er innlogget
