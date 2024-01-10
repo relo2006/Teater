@@ -1,6 +1,5 @@
 import json
 import os
-from datetime import datetime
 import smtplib
 import random
 import string
@@ -56,8 +55,6 @@ def oppdater_json(original_filnavn, ny_filnavn, bestilt_dato, teater_data):
                 print(f"Dato {bestilt_dato} er fjernet fra den kopierte versjonen.")
             else:
                 print(f"Dato {bestilt_dato} er ikke tilgjengelig i den kopierte versjonen.")
-        else:
-            print(f"Ikke alle seter er opptatt på {bestilt_dato}. Ingen kopiering nødvendig.")
     else:
         print(f"Dato {bestilt_dato} er ikke tilgjengelig i teaterdataene.")
 
@@ -100,21 +97,46 @@ def salfunc():
         print("Velg mellom: 1 eller 2", end="\n")
         print("1. Vildanden")
         print("2. De elendige")
-        forestilling = int(input("Hvilken forestilling har du lyst til å se på: "))
-        sal = str(input("Skriv inn salen du ønsker å bestille billett til (For sal sølv, vennligst skriv inn solv): "))
+        forestilling = None
+        while forestilling is None or forestilling > 2:
+            try:
+                forestilling = int(input("Hvilken forestilling har du lyst til å se på: "))
+            except ValueError:
+                print("Vennligst skriv inn et gyldig tall.")
+
+        if forestilling == 1:
+            sal = "solv"
+        elif forestilling == 2:
+            sal == "gull"
+
         if sal.lower() not in ['gull', 'solv', 'bronse']:
             print("Ugyldig saltype. Velg mellom Gull, Sølv eller Bronse.")
         else:
             if sal.lower() == "gull":
-                plasser_gull = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Gull: "))
+                plasser_gull = None
+                while plasser_gull is None or plasser_gull > 150:
+                    try:
+                        plasser_gull = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Gull: "))
+                    except ValueError:
+                        print("Vennligst skriv inn et gyldig tall.")
                 plasser_solv, plasser_bronse = 0, 0
                 return sal, plasser_gull, plasser_solv, plasser_bronse, forestilling
             elif sal.lower() == "solv":
-                plasser_solv = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Sølv: "))
+                plasser_solv = None
+                while plasser_solv is None or plasser_solv > 150:
+                    try:
+                        plasser_solv= int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Sølv: "))
+                    except ValueError:
+                        print("Vennligst skriv inn et gyldig tall.")
                 plasser_gull, plasser_bronse = 0, 0
                 return sal, plasser_gull, plasser_solv, plasser_bronse, forestilling
             elif sal.lower() == "bronse":
-                plasser_bronse = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Bronse: "))
+                plasser_bronse = None
+                while plasser_bronse is None or plasser_bronse > 150:
+                    try:
+                        plasser_bronse = int(input("Skriv inn hvor mange billetter du skal kjøpe for plasser av Bronse: "))
+                    except ValueError:
+                        print("Vennligst skriv inn et gyldig tall.")
                 plasser_gull, plasser_solv = 0, 0
                 return sal, plasser_gull, plasser_solv, plasser_bronse, forestilling
 
@@ -160,13 +182,17 @@ oppdaterteplasser = {
     "Solv": str(solvplasser),
     "Bronse": str(bronseplasser)
 }
+if forestilling == 1:
+    forestillingnavn = "Vildanden"
+    original_filnavn = "solv.json"
+    ny_filnavn = "endret solv.json"
+if forestilling == 2:
+    forestillingnavn = "De elendige"
+    original_filnavn = "gull.json"
+    ny_filnavn = "endret gull.json"
 
-original_filnavn = "original tilgjengelige datoer og seter.json"
-ny_filnavn = "endret tilgjengelige datoer og seter.json"
 
 datoer_data = vis_datoer(original_filnavn, ny_filnavn)
-
-valgt_indeks = int(input("Velg en dato ved å skrive inn tilhørende nummer: "))
 
 if os.path.exists(ny_filnavn):
     with open(ny_filnavn, 'r') as fil:
@@ -175,20 +201,37 @@ else:
     with open(original_filnavn, 'r') as fil:
         datoer_data = json.load(fil)
 
-valgt_nummer = int(input("Velg en dato ved å skrive nummeret: "))
+valgt_nummer = None
+while valgt_nummer is None or valgt_nummer > 10:
+            try:
+                valgt_nummer = int(input("Velg en dato ved å skrive nummeret: "))
+            except ValueError:
+                print("Vennligst skriv inn et gyldig tall.")
+
 valgt_dato = list(datoer_data["teater"]["datoer"].keys())[valgt_nummer - 1]
 
 dato_data = datoer_data["teater"]["datoer"][valgt_dato]
 
-
-
-
 while True:
-    navn = str(input("Skriv inn navnet ditt: "))
-    adresse = str(input("Skriv inn adressen din: "))
-    tlf = str(input("Skriv inn telefonnummeret ditt: "))
-    epost = str(input("Skriv inn epostadressen din: "))
-    alder = int(input("Skriv inn alderen din: "))
+    navn = input("Skriv inn navnet ditt: ")
+    if any(char.isdigit() for char in navn):
+        print("Navnet kan ikke inneholde tall. Prøv igjen.")
+        continue
+
+    adresse = input("Skriv inn adressen din: ")
+
+    tlf = input("Skriv inn telefonnummeret ditt: ")
+
+    epost = input("Skriv inn epostadressen din: ")
+    if any(char.isdigit() for char in epost) or '@' not in epost:
+        print("Ugyldig epostadresse. Eposten må inneholde '@' og ikke inneholde tall. Prøv igjen.")
+        continue
+
+    try:
+        alder = int(input("Skriv inn alderen din: "))
+    except ValueError:
+        print("Vennligst skriv inn et gyldig tall for alder.")
+        continue
 
     if navn and adresse and tlf and epost and alder:
         verifikasjonskode = verfiseringkodefunc()
@@ -222,7 +265,11 @@ valgte_seter = []  # Lag en liste for å lagre alle valgte seter
 
 for i in range(billetter):
     while True:
-        valgt_sete_nummer = int(input("Velg et sete ved å skrive nummeret: "))
+        valgt_sete_nummer = input("Velg et sete ved å skrive nummeret: ")
+        if not valgt_sete_nummer.isdigit():
+            print("Setenummeret kan ikke inneholde bokstaver. Prøv igjen.")
+            continue
+        valgt_sete_nummer = int(valgt_sete_nummer)
         valgt_sete = dato_data["seksjoner"][0]["seter"][valgt_sete_nummer - 1]
 
         # Sjekk om setet er opptatt
@@ -231,13 +278,7 @@ for i in range(billetter):
         else:
             # Oppdater setet til opptatt
             valgt_sete["opptatt"] = True
-
-            # Skriv oppdatert JSON tilbake til kopifilen
-            with open(ny_filnavn, "w") as fil:
-                json.dump(datoer_data, fil, indent=2)
-
             print(f"Setet {valgt_sete['setenavn']} for {valgt_dato} er nå markert som opptatt.")
-            
             valgte_seter.append(valgt_sete)  # Legg til det valgte setet i listen
             break  # Avslutt løkken når et ledig sete er valgt
 
@@ -254,7 +295,7 @@ else:
     pris = 300  # Ordinær pris for alle andre
     pris = pris * billetter
 
-forestillingnavn = "Vildanden" if forestilling == 1 else "De elendige"
+
 
 person = {
     "navn": navn,
@@ -278,6 +319,9 @@ with open(os.path.join("Personer", f'{epost}.json'), 'w') as f:
 
 with open('Ledige Saler.json', 'w') as f:
     json.dump(oppdaterteplasser, f, indent=2)
+
+with open(ny_filnavn, "w") as fil:
+    json.dump(datoer_data, fil, indent=2)
 
 oppdater_json(original_filnavn, ny_filnavn, valgt_dato, datoer_data)
 print(f"Du har valgt datoen {valgt_dato} for bestilling.")
