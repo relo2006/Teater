@@ -1,0 +1,22 @@
+{
+  "navn": "Methusan",
+  "adresse": "adjsdwajdwa",
+  "telefon": "12913912",
+  "epost": "methusan@hotmail.no",
+  "person_type": "Student",
+  "Dato": "02.02.2024",
+  "Billetter": 2,
+  "Forestilling": "Vildanden",
+  "Seter": [
+    {
+      "setenavn": "A1",
+      "opptatt": true
+    },
+    {
+      "setenavn": "A2",
+      "opptatt": true
+    }
+  ],
+  "Pris": 480,
+  "Sal": "solv"
+}

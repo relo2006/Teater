@@ -2,6 +2,7 @@ import json
 import os
 import smtplib
 import random
+import clear
 import string
 
 def verifikasjonskode_func():
@@ -75,7 +76,7 @@ while True:
             if bruker_data["Forestilling"] == "De elendige":
                 endret_filnavn = "endret gull.json"
             elif bruker_data["Forestilling"] == "Vildanden":
-                endret_filnavn = "endre solv.json"
+                endret_filnavn = "endret solv.json"
 
             with open(endret_filnavn, 'r') as endret_fil:
                 endret_data = json.load(endret_fil)
@@ -87,6 +88,17 @@ while True:
 
             with open(endret_filnavn, 'w') as endret_fil:
                 json.dump(endret_data, endret_fil, indent=2)
+
+            # Legg tilbake billettene i riktig sal
+            antall_billetter = bruker_data["Billetter"]
+            sal = bruker_data["Sal"]
+            with open("Ledige Saler.json", 'r') as ledige_saler_fil:
+                ledige_saler_data = json.load(ledige_saler_fil)
+            
+            ledige_saler_data[sal] = str(int(ledige_saler_data[sal]) + antall_billetter)
+
+            with open("Ledige Saler.json", 'w') as ledige_saler_fil:
+                json.dump(ledige_saler_data, ledige_saler_fil, indent=2)
 
             # Fjern brukerens JSON-fil
             os.remove(bruker_json_fil)
