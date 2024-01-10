@@ -4,6 +4,7 @@ import smtplib
 import random
 import clear
 import string
+import sys
 
 def verifikasjonskode_func():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -45,11 +46,18 @@ def avbestill_alle_seter(bruker_data):
 
 # Sørg for at e-postadressen inneholder '@'
 while True:
-    to_email = input("Skriv inn din e-postadresse: ")
-    if '@' in to_email:
-        break
+    valg = input("Vil du Fortsette (Ja/Nei): ")
+    if valg.lower() == "ja":
+        to_email = input("Skriv inn din e-postadresse: ")
+        if '@' in to_email:
+            break
+        else:
+            print("Ugyldig e-postadresse. Vennligst skriv inn en gyldig e-postadresse med '@'.")
+    elif valg.lower() == "nei":
+        sys.exit()
     else:
-        print("Ugyldig e-postadresse. Vennligst skriv inn en gyldig e-postadresse med '@'.")
+        print("Ugyldig valg. Vennligst skriv 'Ja' eller 'Nei'.")
+
 
 # Generer verifikasjonskode
 verification_code = verifikasjonskode_func()
@@ -91,7 +99,7 @@ while True:
 
             # Legg tilbake billettene i riktig sal
             antall_billetter = bruker_data["Billetter"]
-            sal = bruker_data["Sal"]
+            sal = bruker_data["Sal"].capitalize()
             with open("Ledige Saler.json", 'r') as ledige_saler_fil:
                 ledige_saler_data = json.load(ledige_saler_fil)
             
